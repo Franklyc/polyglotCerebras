@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Cerebras Translator</title>
+    <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Cerebras Translator</h1>
+            <div class="language-switch">
+                <button id="zhToEn" class="active">中 → En</button>
+                <button id="enToZh">En → 中</button>
+            </div>
+        </div>
+        
+        <div class="translation-area">
+            <div class="input-container">
+                <textarea id="inputText" placeholder="Enter text to translate..."></textarea>
+                <button id="clearInput" class="clear-btn">×</button>
+            </div>
+            
+            <button id="translateBtn" class="translate-btn">Translate</button>
+            
+            <div class="output-container">
+                <textarea id="outputText" readonly placeholder="Translation will appear here..."></textarea>
+                <button id="copyOutput" class="copy-btn">Copy</button>
+            </div>
+        </div>
+
+        <div id="error" class="error-message" style="display: none;"></div>
+    </div>
+    <script src="popup.js"></script>
+</body>
+</html>
