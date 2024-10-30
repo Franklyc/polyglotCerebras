@@ -35,6 +35,24 @@ document.addEventListener('DOMContentLoaded', function() {
             '中文翻译将显示在这里...';
     }
 
+    // Get all settings from storage
+    async function getSettings() {
+        const defaultSettings = {
+            cerebrasApiKey: '',
+            zhToEnPrompt: 'You are restricted to only output the english translation of user\'s input.',
+            enToZhPrompt: 'You are restricted to only output the chinese translation of user\'s input.',
+            translationStyle: 'accurate',
+            temperature: 0.2,
+            topP: 1.0
+        };
+
+        return new Promise((resolve) => {
+            chrome.storage.sync.get(defaultSettings, function(settings) {
+                resolve(settings);
+            });
+        });
+    }
+
     // Translation function
     async function translate() {
         const text = inputText.value.trim();
@@ -45,15 +63,22 @@ document.addEventListener('DOMContentLoaded', function() {
 
         translateBtn.disabled = true;
         try {
-            const systemPrompt = currentMode === 'zhToEn' ?
-                "You are restricted to only output the english translation of user's input." :
-                "You are restricted to only output the chinese translation of user's input.";
+            const settings = await getSettings();
+            
+            // Get the appropriate system prompt based on translation direction
+            const systemPrompt = currentMode === 'zhToEn' ? 
+                settings.zhToEnPrompt : 
+                settings.enToZhPrompt;
+
+            // Adjust parameters based on translation style
+            let temperature = settings.temperature;
+            let topP = settings.topP;
 
             const response = await fetch(`${API_BASE_URL}/chat/completions`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${await getCerebrasApiKey()}`
+                    'Authorization': `Bearer ${settings.cerebrasApiKey}`
                 },
                 body: JSON.stringify({
                     messages: [
@@ -69,8 +94,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     model: 'llama3.1-70b',
                     stream: false,
                     max_completion_tokens: 1024,
-                    temperature: 0.2,
-                    top_p: 1
+                    temperature: temperature,
+                    top_p: topP
                 })
             });
 
@@ -87,15 +112,6 @@ document.addEventListener('DOMContentLoaded', function() {
         } finally {
             translateBtn.disabled = false;
         }
-    }
-
-    // Get API key from storage
-    async function getCerebrasApiKey() {
-        return new Promise((resolve) => {
-            chrome.storage.sync.get(['cerebrasApiKey'], function(result) {
-                resolve(result.cerebrasApiKey || '');
-            });
-        });
     }
 
     function showError(message) {
